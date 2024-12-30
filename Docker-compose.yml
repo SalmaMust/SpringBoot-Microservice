@@ -1,0 +1,131 @@
+services:
+  # Eureka Server
+  eureka-server:
+    image: openjdk:17-jdk
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - ./eureka:/app
+    working_dir: /app
+    command: ["java", "-jar", "eureka-server.jar"]
+    networks:
+      - spring-cloud-network
+
+  # Config Server
+  config-service:
+    image: openjdk:17-jdk
+    container_name: config-service
+    ports:
+      - "9999:9999"
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+      - JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - ./config-service:/app
+      - ./configurations:/configurations
+    working_dir: /app
+    command: ["java", "-jar", "config-service.jar"]
+    networks:
+      - spring-cloud-network
+
+  # Patient Service
+  patient-service:
+    image: openjdk:17-jdk
+    container_name: patient-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - ./patient-service:/app
+    working_dir: /app
+    command: ["java", "-jar", "patient-service.jar"]
+    depends_on:
+      - eureka-server
+      - mysql
+    networks:
+      - spring-cloud-network
+
+  # Medecin Service
+  medecin-service:
+    image: openjdk:17-jdk
+    container_name: medecin-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - ./medecin-service:/app
+    working_dir: /app
+    command: ["java", "-jar", "medecin-service.jar"]
+    depends_on:
+      - eureka-server
+      - mysql
+    networks:
+      - spring-cloud-network
+
+  # Rdv Service
+  rdv-service:
+    image: openjdk:17-jdk
+    container_name: rdv-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - ./rdv-service:/app
+    working_dir: /app
+    command: ["java", "-jar", "rdv-service.jar"]
+    depends_on:
+      - eureka-server
+      - mysql
+    networks:
+      - spring-cloud-network
+
+  # API Gateway
+  gateway-service:
+    image: openjdk:17-jdk
+    container_name: gateway-service
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - ./gateway-service:/app
+    working_dir: /app
+    command: ["java", "-jar", "gateway-service.jar"]
+    depends_on:
+      - eureka-server
+    networks:
+      - spring-cloud-network
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "1333:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: patient
+      MYSQL_DATABASE2: medecin
+      MYSQL_DATABASE3: rdv
+    networks:
+      - spring-cloud-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+networks:
+  spring-cloud-network:
+    driver: bridge
+
+volumes:
+  mysql-data:

@@ -1,0 +1,30 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/springboot-ms-medical
+          jwk-set-uri: http://localhost:8080/realms/springboot-ms-medical/protocol/openid-connect/certs
+        token:
+          converter:
+            principal-attribute=preferred_username
+  cloud:
+    gateway:
+      routes :
+        - id: r1
+          uri: http://localhost:8081/
+          predicates:
+            - Path=/api/patient/**
+        - id: r2
+          uri: http://localhost:8082/
+          predicates:
+            - Path=/api/medecin/**
+        - id: r3
+          uri: http://localhost:8083/
+          predicates:
+            - Path=/api/rdv/**
+  application:
+    name: gateway-service
+
+    server:
+  port : 8888
